@@ -1,0 +1,13 @@
+date,value,source_id,mapping_config
+2018-01-01T00:00:00Z,800,467617,prix_abonnement
+2018-01-01T00:00:00Z,80,467617,prix_conso_base
+2018-01-01T00:00:00Z,160,467617,prix_conso_hp
+2018-01-01T00:00:00Z,40,467617,prix_conso_hc
+2019-01-01T00:00:00Z,2000,467617,prix_abonnement
+2019-01-01T00:00:00Z,200,467617,prix_conso_base
+2019-01-01T00:00:00Z,400,467617,prix_conso_hp
+2019-01-01T00:00:00Z,100,467617,prix_conso_hc
+2019-05-01T00:00:00Z,3000,467617,prix_abonnement
+2019-05-01T00:00:00Z,300,467617,prix_conso_base
+2019-05-01T00:00:00Z,600,467617,prix_conso_hp
+2019-05-01T00:00:00Z,150,467617,prix_conso_hc
