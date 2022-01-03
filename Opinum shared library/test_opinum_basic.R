@@ -1,4 +1,4 @@
-source("Opinum shared library/opinum.basic.R")
+source("opinum.basic.R")
 
 
 get_test_data <- function() {

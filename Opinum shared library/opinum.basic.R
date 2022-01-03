@@ -10,9 +10,9 @@ get_granularity_names <- function(granularity) {
   list(rounding = granularity, sequence = seq_granularity)
 }
 
-opinum_consumption_from_index <- function(input_variable, keep_original_points = TRUE, granularity = "day") {
+opinum_consumption_from_index <- function(input_variable, keep_original_points = FALSE, granularity = "day") {
   df <- input_variable$TimeSeries
-  df$Dates <- as.POSIXct(df$Dates, origin='1970-01-01')
+  df$Dates <- as.POSIXct(df$Dates, origin='1970-01-01', tz=input_variable$Variable$SourceTimeZoneId)
   granularities <- get_granularity_names(granularity)
   dates <- seq(ceiling_date(df$Dates[1], unit=granularities$rounding),
                floor_date(df$Dates[length(df$Dates)], unit=granularities$rounding),
