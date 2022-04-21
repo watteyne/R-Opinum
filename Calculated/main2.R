@@ -1,17 +1,28 @@
+load('c:/dev/R/Calculated/sampleData.rdata')
+
 library(dplyr)
+library(purrr)
 
-dates <- Reduce(intersect, inputVariables %>%
+all_names <- names(inputVariables)
+
+volume_df <- all_names[all_names != "self"] %>%
   lapply(
     function(x){
-      x$TimeSeries$Dates
-    }))
+      inputVariables[[x]]$TimeSeries %>%
+        mutate(Values = Values * ifelse(endsWith(x, "BVolume"), 1, -1)) %>%
+        rename(!!x := Values)
+    }) %>%
+  reduce(full_join, by = "Dates") %>%
+  replace(is.na(.),0) %>%
+  mutate(Values = rowSums(select(., -Dates))) %>%
+  select(Dates, Values)
 
-values <- Reduce('+', inputVariables %>%
-  lapply(
-    function(x){
-      x$TimeSeries %>%
-        filter(Dates %in% dates) %>%
-        select(Values)
-    }))
+self <- inputVariables$self$TimeSeries
+result <- volume_df[! volume_df$Dates %in% self$Dates, ]
 
-list(TimeSeries=data.frame(Dates=dates, Values=values))
+overlap <- volume_df[volume_df$Dates %in% self$Dates, ]
+self <- self[self$Dates %in% overlap$Dates, ]
+
+overlap <- overlap[abs(overlap$Values - self$Values) > 0.0001, ]
+
+list(TimeSeries=rbind(result, overlap))

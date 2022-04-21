@@ -1,9 +1,32 @@
-values <- c()
-dates <- c()
+load('c:/dev/R/Calculated/sampleData.rdata')
 
-{for (var in inputVariables) {
-  values[[length(values) + 1]] <- var$TimeSeries$Values
-  dates[[length(dates) + 1]] <- var$TimeSeries$Dates
-}}
+library(lubridate)
+library(dplyr)
 
-list(TimeSeries=data.frame(Dates=dates[[1]], Values=max(unlist(values))))
+{
+  capacities <- data.frame(Dates=numeric(0), Values=numeric(0))
+
+  for (name in names(inputVariables)) {
+    if (startsWith(name, 'v')) {
+      capacity <- inputVariables[[name]]$TimeSeries
+      if (nrow(capacity) > 0) {
+        meaningful <- inputVariables[[gsub('v', 'm', name)]]$TimeSeries
+        if (nrow(meaningful) > 0) {
+          capacity$Dates <- floor_date(as.POSIXct(capacity$Dates, origin='1970-01-01', tz='UTC'), unit='month')
+          meaningful$Dates <- as.POSIXct(meaningful$Dates, origin='1970-01-01', tz='UTC')
+          capacity <- capacity[capacity$Dates >= meaningful$Dates[1], ]
+          capacity <- aggregate(Values ~ Dates, capacity, mean)
+          capacity[(! capacity$Dates %in% meaningful$Dates), "Values"] <- 0
+          capacity[(capacity$Dates %in% meaningful$Dates), "Values"] <-
+            capacity[(capacity$Dates %in% meaningful$Dates), "Values"] * meaningful[meaningful$Dates %in% capacity$Dates, "Values"]
+          capacities <- rbind(capacities, capacity)
+        }
+      }
+    }
+  }
+
+  list(TimeSeries=aggregate(Values ~ Dates, capacities, sum))
+}
+
+
+

@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/R.iml" filepath="$PROJECT_DIR$/.idea/R.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../python-opisense-tools/.idea/python-opisense-tools.iml" filepath="$PROJECT_DIR$/../python-opisense-tools/.idea/python-opisense-tools.iml" />
+      <module fileurl="file://$APPLICATION_CONFIG_DIR$/projects/workspace/.idea/workspace.iml" filepath="$APPLICATION_CONFIG_DIR$/projects/workspace/.idea/workspace.iml" />
     </modules>
   </component>
 </project>
