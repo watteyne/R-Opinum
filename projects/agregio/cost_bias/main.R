@@ -4,18 +4,24 @@ library(lubridate)
 library(dplyr)
 library(zoo)
 
+
+df <- inputVariables$SPOT$TimeSeries
+min_30_df <- df[(df$Dates %% 3600) == 0, ]
+min_30_df$Dates <- min_30_df$Dates + 1800
+min_30_df <- min_30_df[! min_30_df$Dates %in% df$Dates, ]
+df <- rbind(df, min_30_df)
+inputVariables$SPOT$TimeSeries <- df[order(df$Dates), ]
+
 dates <- Reduce(intersect, inputVariables[names(inputVariables) != "self"] %>%
   lapply(
     function(x){
-      as.POSIXct(x$TimeSeries$Dates, origin='1970-01-01', tz='UTC')
+      x$TimeSeries$Dates
     }))
-
-
 
 { for (var_name in names(inputVariables)) {
   df <- inputVariables[[var_name]]$TimeSeries
-  df$Dates <- as.POSIXct(df$Dates, origin='1970-01-01', tz='UTC')
   df <- df[df$Dates %in% dates, ]
+  df$Dates <- as.POSIXct(df$Dates, origin='1970-01-01', tz='UTC')
   inputVariables[[var_name]]$TimeSeries <- df
 }
 }
