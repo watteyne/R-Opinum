@@ -26,8 +26,7 @@ opinum_consumption_from_index <- function(input_variable,
                by=granularities$sequence)
   if (keep_original_points) {
     dates <- sort(union(df$Dates, dates))
-    dates <- as.POSIXct(dates, origin='1970-01-01', tz='UTC')
-    dates <- force_tz(dates, target_variable$SourceTimeZoneId)
+    dates <- as.POSIXct(dates, origin='1970-01-01', tz=target_variable$SourceTimeZoneId)
   }
   indices <- approx(df$Dates, df$Values, dates, method="linear")$y
   if (na_at_the_end) {
