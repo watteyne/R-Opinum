@@ -46,4 +46,4 @@ opinum_consumption_from_manual_consumption <- function(input_variable,
   opinum_consumption_from_index(input_variable, target_variable, keep_original_points, granularity, na_at_the_end)
 }
 
-opinum_consumption_from_manual_consumption(inputVariables$index,targetVariable)
+opinum_consumption_from_index(inputVariables$index, targetVariable)
