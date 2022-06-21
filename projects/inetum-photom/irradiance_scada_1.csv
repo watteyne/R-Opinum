@@ -1,0 +1,14 @@
+"date","value","source_serialnumber","mapping_config"
+2022-06-15T08:00:00Z,50,Template_Irradiance_Scada,Irr1
+2022-06-15T08:10:00Z,N/A,Template_Irradiance_Scada,Irr1
+2022-06-15T08:20:00Z,N/A,Template_Irradiance_Scada,Irr1
+2022-06-15T08:30:00Z,N/A,Template_Irradiance_Scada,Irr1
+2022-06-15T08:40:00Z,54,Template_Irradiance_Scada,Irr1
+2022-06-15T08:50:00Z,55,Template_Irradiance_Scada,Irr1
+2022-06-15T09:00:00Z,2000,Template_Irradiance_Scada,Irr1
+2022-06-15T09:10:00Z,56.5,Template_Irradiance_Scada,Irr1
+2022-06-15T09:20:00Z,N/A,Template_Irradiance_Scada,Irr1
+2022-06-15T09:30:00Z,57,Template_Irradiance_Scada,Irr1
+2022-06-15T09:40:00Z,100,Template_Irradiance_Scada,Irr1
+2022-06-15T09:50:00Z,58,Template_Irradiance_Scada,Irr1
+2022-06-15T10:00:00Z,60,Template_Irradiance_Scada,Irr1
