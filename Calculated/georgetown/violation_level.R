@@ -1,7 +1,9 @@
-load('c:/dev/R/Calculated/georgetown/sampleData.rdata')
-
 library('dplyr')
 library('lubridate')
+
+get_empty_dataframe <- function() {
+  data.frame(Dates=numeric(0), Values=numeric(0))
+}
 
 get_date_timestamp_in_local_time <- function(utc_date) {
   # Could be a loooot simpler to write but some mysterious behaviours force to follow this way
@@ -15,11 +17,10 @@ get_date_timestamp_in_local_time <- function(utc_date) {
 
 
 get_last_violation_level <- function() {
-  violation_levels <- inputVariables$self$TimeSeries
-  if (nrow(violation_levels) ==0) {
-    data.frame(Dates=numeric(0), Values=numeric(0))
+  if (nrow(master) == 0) {
+    get_empty_dataframe()
   } else {
-    violation_levels[nrow(violation_levels), ]
+    master[nrow(master), ]
   }
 }
 
@@ -29,25 +30,33 @@ filter_violations <- function() {
   # We only look at violations after a fixed start date
   violations <- violations[violations$Dates >= start_violation_calculations, ]
 
+  # We also reject too old violation (30 days)
+  violations <- violations[violations$Dates >= (as.integer(Sys.Date()) - 30) * 24 * 3600, ]
+
+
   if (nrow(last_violation_level) > 0) {
-    violations <- violations[violations$Dates > last_violation_level[1, 'Dates'], ]
+    violations <- violations[violations$Dates > last_violation_level[1, ]$Dates, ]
   }
 
-  # We clean the violations during a certificate period
-  if(is.null(inputForms$certificateStart)) {
-    if(!is.null(inputForms$certificateEnd)) {
-      end <- get_date_timestamp_in_local_time(inputForms$certificateEnd)
-      violations <- violations[violations$Dates > end, ]
-    }
+  # We clean the violations during a certificate period or exclusion
+  exclusion <- if(!is.null(inputForms$exclusion)){inputForms$exclusion}else{FALSE}
+  if (exclusion) {
+    violations <- get_empty_dataframe()
   } else {
-    start <- get_date_timestamp_in_local_time(inputForms$certificateStart)
-    if(is.null(inputForms$certificateEnd)) {
-      violations <- violations[violations$Dates < start, ]
+    if(is.null(inputForms$certificateStart)) {
+      if(!is.null(inputForms$certificateEnd)) {
+        end <- get_date_timestamp_in_local_time(inputForms$certificateEnd)
+        violations <- violations[violations$Dates > end, ]
+      }
     } else {
-      end <-get_date_timestamp_in_local_time(inputForms$certificateEnd)
-      violations <- violations[(violations$Dates < start) | (violations$Dates > end), ]
+      start <- get_date_timestamp_in_local_time(inputForms$certificateStart)
+      if(is.null(inputForms$certificateEnd)) {
+        violations <- violations[violations$Dates < start, ]
+      } else {
+        end <- get_date_timestamp_in_local_time(inputForms$certificateEnd)
+        violations <- violations[(violations$Dates < start) | (violations$Dates > end), ]
+      }
     }
-
   }
 
   violations
@@ -70,14 +79,17 @@ get_owners <- function() {
 
 
 add_courtesy_level <- function(violation_date) {
+  # We have a new violation level and consider as the last we knew for further calculations
   last_violation_level <<- data.frame(Dates=violation_date, Values=0)
+  # We add it in the output
   result <<- rbind(result, last_violation_level)
+  # For further calculations, we only consider new violations after this violation date
   violations <<- violations[violations$Dates > violation_date, ]
 }
 
 manage_recent_existing_violation_level_for_owner <- function(violation_date) {
   freeze_period_name <- paste0('frozen', last_violation_level$Values)
-  freeze_period <- if (is.null(inputForms[[freeze_period_name]])) {10} else {inputForms[[freeze_period_name]]}
+  freeze_period <- if (is.null(inputForms[[freeze_period_name]])) {20} else {inputForms[[freeze_period_name]]}
   min_next_level_date <- last_violation_level$Dates + freeze_period * 86400
   if (violation_date < min_next_level_date) {
     # Violation is not eligible. We look at next iteration only for eligible dates
@@ -87,8 +99,8 @@ manage_recent_existing_violation_level_for_owner <- function(violation_date) {
     if (nrow(next_owners) > 0) {
       # Bypass min issues in Datahub R
       next_owners <- next_owners[order(next_owners$Dates), ]
-      if (next_level_date > next_owners[1, 'Dates']) {
-        next_level_date <- next_owners[1, 'Dates']
+      if (next_level_date > next_owners[1, ]$Dates) {
+        next_level_date <- next_owners[1, ]$Dates
       }
     }
     violations <<- violations[violations$Dates >= next_level_date, ]
@@ -119,7 +131,7 @@ manage_existing_violation_level <- function(violation_date) {
     # Bypass max issues in Datahub R
     previous_owners <- previous_owners[order(-previous_owners$Dates), ]
     # We sorted descending
-    owner_start_date <- previous_owners[1, 'Dates']
+    owner_start_date <- previous_owners[1, ]$Dates
   }
   if (last_violation_level$Dates < owner_start_date) {
     # This is the first violation for this owner
@@ -131,7 +143,7 @@ manage_existing_violation_level <- function(violation_date) {
 
 main <- function() {
   while (nrow(violations) > 0) {
-    first_violation_date <- violations[1, 'Dates']
+    first_violation_date <- violations[1, ]$Dates
     if (nrow(last_violation_level) == 0){
       # We consider this is the first violation
       add_courtesy_level(first_violation_date)
@@ -144,12 +156,10 @@ main <- function() {
 
 start_violation_calculations <- get_date_timestamp_in_local_time(inputForms$startViolations)
 reset_period <- inputForms$reset * 86400
+master <- inputVariables$master$TimeSeries
 last_violation_level <- get_last_violation_level()
 violations <- filter_violations()
 owners <- get_owners()
-result <- data.frame(Dates=numeric(0), Values=numeric(0))
+result <- get_empty_dataframe()
 main()
-list(TimeSeries=result)
-
-
-
+list(TimeSeries=rbind(master, result))
